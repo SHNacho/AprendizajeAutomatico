@@ -6,60 +6,64 @@ Nombre Estudiante:
 #%%
 import numpy as np
 import matplotlib.pyplot as plt
-from sympy import diff, exp
-from sympy.abc import u,v
+#from sympy import diff, exp
+#from sympy.abc import u,v
 
 np.random.seed(1)
 
 print('EJERCICIO SOBRE LA BUSQUEDA ITERATIVA DE OPTIMOS\n')
 print('Ejercicio 1\n')
 
+# =============================================================================
+# Ejercicio 1.1
+# =============================================================================
+def gradient_descent(w_ini, lr, grad_fun, fun, epsilon = None, max_iters = 50):
+    #
+    # gradiente descendente
+    # 
+    w = w_ini
+    ws = np.array(w)
+    iterations = 0
+    continuar = True
+    while(continuar and iterations < max_iters):
+        w = w - lr * grad_fun(w[0], w[1])
+        iterations += 1
+        ws = np.append(ws, w, axis=0)
+        if epsilon != None:
+            continuar = fun(w[0], w[1]) > epsilon
+        
+    ws = np.reshape(ws, (int(len(ws)/2), 2))
+    return w, iterations, ws   
+
+# =============================================================================
+# Ejercicio 1.2
+# =============================================================================
 def E(u,v):
-    return (u*v*exp(-(u**2) -(v**2)))**2  
+    return (u*v*np.exp(-(u**2) -(v**2)))**2  
 
 #Derivada parcial de E con respecto a u
 def dEu(u,v):
-    return -4*u**3*v**2*exp(-2*u**2 - 2*v**2) + 2*u*v**2*exp(-2*u**2 - 2*v**2)
+    return -4*u**3*v**2*np.exp(-2*u**2 - 2*v**2) + 2*u*v**2*np.exp(-2*u**2 - 2*v**2)
     
 #Derivada parcial de E con respecto a v
 def dEv(u,v):
-    return -4*u**2*v**3*exp(-2*u**2 - 2*v**2) + 2*u**2*v*exp(-2*u**2 - 2*v**2)
+    return -4*u**2*v**3*np.exp(-2*u**2 - 2*v**2) + 2*u**2*v*np.exp(-2*u**2 - 2*v**2)
 
 #Gradiente de E
 def gradE(u,v):
     return np.array([dEu(u,v), dEv(u,v)])
 
 
-def gradient_descent(w_ini, lr, grad_fun, fun, epsilon, max_iters):
-    #
-    # gradiente descendente
-    # 
-    
-    w = w_ini
-    ws = np.array(w)
-    iterations = 0
-    while(fun(w[0], w[1]) > epsilon and iterations < max_iters):
-        print(fun(w[0], w[1]))
-        w = w - lr * grad_fun(w[0], w[1])
-        iterations += 1
-        ws = np.append(ws, w, axis=0)
-        
-    ws = np.reshape(ws, (int(len(ws)/2), 2))
-    return w, iterations, ws   
-
-    #%%
 eta = 0.1 
 maxIter = 10000000000
-error2get = 1e-5
+error2get = 1e-8
 initial_point = np.array([0.5,-0.5])
 w, it, ws = gradient_descent(initial_point, 0.1, gradE, E, error2get, maxIter)
-#%%
 
 print ('Numero de iteraciones: ', it)
 print ('Coordenadas obtenidas: (', w[0], ', ', w[1],')')
-print (ws)
 
-#%%
+
 '''
 Esta función muestra una figura 3D con la función a optimizar junto con el 
 óptimo encontrado y la ruta seguida durante la optimización. Esta función, al igual
@@ -77,33 +81,60 @@ Ejemplo de uso: display_figure(2, E, ws, 'plasma','Ejercicio 1.2. Función sobre
 '''
 def display_figure(rng_val, fun, ws, colormap, title_fig):
     # https://jakevdp.github.io/PythonDataScienceHandbook/04.12-three-dimensional-plotting.html
-    from mpl_toolkits.mplot3d import Axes3D
-    x = np.linspace(-rng_val, rng_val, 50)
-    y = np.linspace(-rng_val, rng_val, 50)
-    X, Y = np.meshgrid(x, y)
+    #from mpl_toolkits.mplot3d import Axes3D
+    X = np.linspace(-rng_val, rng_val, 50)
+    Y = np.linspace(-rng_val, rng_val, 50)
+    X, Y = np.meshgrid(X, Y)
     Z = fun(X, Y) 
-    fig = plt.figure()
-    ax = Axes3D(fig,auto_add_to_figure=False)
-    fig.add_axes(ax)
+    fig = plt.figure(figsize=(10, 10))
+    #ax = Axes3D(fig,auto_add_to_figure=False)
+    ax = fig.add_subplot(1, 1, 1, projection='3d')
+    #fig.add_axes(ax)
     ax.plot_surface(X, Y, Z, edgecolor='none', rstride=1,
                             cstride=1, cmap=colormap, alpha=.6)
     if len(ws)>0:
         ws = np.asarray(ws)
         min_point = np.array([ws[-1,0],ws[-1,1]])
         min_point_ = min_point[:, np.newaxis]
-        ax.plot(ws[:-1,0], ws[:-1,1], E2(ws[:-1,0], ws[:-1,1]), 'r*', markersize=5)
-        ax.plot(min_point_[0], min_point_[1], E2(min_point_[0], min_point_[1]), 'r*', markersize=10)
+        ax.plot(ws[:-1,0], ws[:-1,1], E(ws[:-1,0], ws[:-1,1]), 'r*', markersize=5)
+        ax.plot(min_point_[0], min_point_[1], E(min_point_[0], min_point_[1]), 'r*', markersize=10)
     if len(title_fig)>0:
         fig.suptitle(title_fig, fontsize=16)
     ax.set_xlabel('u')
     ax.set_ylabel('v')
     ax.set_zlabel('E(u,v)')
+    plt.show()
 
 input("\n--- Pulsar tecla para continuar ---\n")
 
-display_figure(5, E, ws, 'plasma', 'Ejercicio 1.2. Función sobre la que se calcula el descenso de gradiente')
 
-#Seguir haciendo el ejercicio...
+display_figure(1, E, ws, 'viridis', 'Ejercicio 1.2. Función sobre la que se calcula el descenso de gradiente')
+
+#%%
+# =============================================================================
+# Ejercicio 1.3
+# =============================================================================
+
+def f(x, y):
+    return x**2 + 2 * (y**2) + 2 * np.sin(2 * np.pi * x) * np.sin(np.pi * y)
+
+def d_fx(x, y):
+    a = np.pi * y
+    return 4 * np.pi * np.sin(np.pi * y) * np.cos(2 * np.pi * x) + 2 * x
+
+def d_fy(x, y):
+    return 2 * np.pi * np.sin(2 * np.pi * x) * np.cos(np.pi * y) + 4 * y
+
+def grad_f(x, y):
+    return np.array([d_fx(x,y), d_fy(x,y)])
+                    
+lr = 0.01
+maxIter = 50
+#error2get = 1e-8
+initial_point = np.array([-1.0,1.0])
+w, it, ws = gradient_descent(initial_point, lr, grad_f, f, max_iters=maxIter)
+
+print(f(w[0], w[1]), it)
 
 #%%
 
