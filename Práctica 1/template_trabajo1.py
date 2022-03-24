@@ -16,12 +16,15 @@ print('Ejercicio 1\n')
 
 # =============================================================================
 # Ejercicio 1.1
+# Función que calcula el descenso del gradiente. Devuelve el último punto
+# calculado, el número de iteraciones realizadas y el conjunto de puntos por
+# los que ha pasado.
 # =============================================================================
 def gradient_descent(w_ini, lr, grad_fun, fun, epsilon = None, max_iters = 50):
     #
     # gradiente descendente
     # 
-    w = w_ini
+    w = w_min = w_ini
     ws = np.array(w)
     iterations = 0
     continuar = True
@@ -29,10 +32,13 @@ def gradient_descent(w_ini, lr, grad_fun, fun, epsilon = None, max_iters = 50):
         w = w - lr * grad_fun(w[0], w[1])
         iterations += 1
         ws = np.append(ws, w, axis=0)
+        if(fun(w_min[0], w_min[1]) > fun(w[0], w[1])):
+            w_min = w
         if epsilon != None:
             continuar = fun(w[0], w[1]) > epsilon
-        
+    
     ws = np.reshape(ws, (int(len(ws)/2), 2))
+    w = w_min
     return w, iterations, ws   
 
 # =============================================================================
@@ -58,7 +64,7 @@ eta = 0.1
 maxIter = 10000000000
 error2get = 1e-8
 initial_point = np.array([0.5,-0.5])
-w, it, ws = gradient_descent(initial_point, 0.1, gradE, E, error2get, maxIter)
+w, it, ws = gradient_descent(initial_point, eta, gradE, E, error2get, maxIter)
 
 print ('Numero de iteraciones: ', it)
 print ('Coordenadas obtenidas: (', w[0], ', ', w[1],')')
@@ -96,8 +102,8 @@ def display_figure(rng_val, fun, ws, colormap, title_fig):
         ws = np.asarray(ws)
         min_point = np.array([ws[-1,0],ws[-1,1]])
         min_point_ = min_point[:, np.newaxis]
-        ax.plot(ws[:-1,0], ws[:-1,1], E(ws[:-1,0], ws[:-1,1]), 'r*', markersize=5)
-        ax.plot(min_point_[0], min_point_[1], E(min_point_[0], min_point_[1]), 'r*', markersize=10)
+        ax.plot(ws[:-1,0], ws[:-1,1], fun(ws[:-1,0], ws[:-1,1]), 'r*', markersize=5)
+        ax.plot(min_point_[0], min_point_[1], fun(min_point_[0], min_point_[1]), 'r*', markersize=10)
     if len(title_fig)>0:
         fig.suptitle(title_fig, fontsize=16)
     ax.set_xlabel('u')
@@ -127,14 +133,56 @@ def d_fy(x, y):
 
 def grad_f(x, y):
     return np.array([d_fx(x,y), d_fy(x,y)])
-                    
+  
+## Apartado a)          
 lr = 0.01
 maxIter = 50
-#error2get = 1e-8
 initial_point = np.array([-1.0,1.0])
 w, it, ws = gradient_descent(initial_point, lr, grad_f, f, max_iters=maxIter)
+display_figure(2, f, ws, 'viridis', 'Ejercicio 1.3.a. Descenso del gradiente con lr=0.01')
 
-print(f(w[0], w[1]), it)
+print("Punto inicial: ", initial_point)
+print("Mínimo alcanzado: ", f(w[0], w[1]))
+print("Alcanzado en el punto: (", w[0], ', ', w[1],')')
+
+lr = 0.1
+w, it, ws = gradient_descent(initial_point, lr, grad_f, f, max_iters=maxIter)
+display_figure(3, f, ws, 'viridis', 'Ejercicio 1.3.a. Descenso del gradiente con lr=0.1')
+
+print("Punto inicial: ", initial_point)
+print("Mínimo alcanzado: ", f(w[0], w[1]))
+print("Alcanzado en el punto: (", w[0], ', ', w[1],')')
+
+#%%
+## Apartado b)
+
+# Definimos los puntos iniciales
+initial_points = np.array([[-0.5, -0.5],
+                           [ 1.0,  1.0],
+                           [ 2.1, -2.1],
+                           [-3.0,  3.0],
+                           [-2.0,  2.0]])
+
+# Definimos los learning rates
+lrs = np.array([0.01, 0.1])
+
+print("Ejercicio 1.3.b")
+# Para cada learning rate
+for lr in lrs:
+    print("============ Learning rate = ", lr, " ==============")
+    # Para cada punto inicial
+    for ini_p in initial_points:
+        # Calculamos descenso del gradiente
+        w, it, ws = gradient_descent(ini_p,
+                                     lr,
+                                     grad_f,
+                                     f,
+                                     max_iters=maxIter)
+        # Mostramos la salida
+        print("-----")
+        print("Punto inicial: ", ini_p)
+        print("Mínimo alcanzado: ", f(w[0], w[1]))
+        print("Alcanzado en el punto: (", w[0], ', ', w[1],')')
 
 #%%
 
@@ -176,17 +224,35 @@ def readData(file_x, file_y):
 
 # Funcion para calcular el error
 def Err(x,y,w):
-    return 
+    w_t = np.transpose(w)
+    product = np.array([np.dot(w_t, x_n) for x_n in x])
+    error = product - y
+    cuadratic_error = error * error
+    ecm = np.mean(cuadratic_error)
+    #square_error = np.dot(product, product)
+    
+    return ecm
+
+def grad_Err(x, y, w):
+    w_t = np.transpose(w)
+    d_w0 = np.mean((np.array([np.dot(w_t, x_n) for x_n in x]) - y) * x[:, 0]) * 2
+    d_w1 = np.mean((np.array([np.dot(w_t, x_n) for x_n in x]) - y) * x[:, 1]) * 2
+    d_w2 = np.mean((np.array([np.dot(w_t, x_n) for x_n in x]) - y) * x[:, 2]) * 2
+    
+    return np.array([d_w0, d_w1, d_w2])
+
+
+
 
 # Gradiente Descendente Estocastico
 def sgd(?):
     #
     return w
 
-# Pseudoinversa	
-def pseudoinverse(?):
-    #
-    return w
+# # Pseudoinversa	
+# def pseudoinverse(?):
+#     #
+#     return w
 
 
 # Lectura de los datos de entrenamiento
@@ -194,12 +260,14 @@ x, y = readData('datos/X_train.npy', 'datos/y_train.npy')
 # Lectura de los datos para el test
 x_test, y_test = readData('datos/X_test.npy', 'datos/y_test.npy')
 
+w = np.array([1., 1., 1.])
 
-w = sgd(?)
+print ("grad: ", grad_Err(x,y,w))
+#w = sgd(?)
 print ('Bondad del resultado para grad. descendente estocastico:\n')
 print ("Ein: ", Err(x,y,w))
 print ("Eout: ", Err(x_test, y_test, w))
-
+#%%
 input("\n--- Pulsar tecla para continuar ---\n")
 
 #Seguir haciendo el ejercicio...
