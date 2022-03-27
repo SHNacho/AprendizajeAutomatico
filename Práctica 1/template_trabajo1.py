@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 TRABAJO 1. 
-Nombre Estudiante: 
+Nombre Estudiante: Ignacio Sánchez Herrera
 """
 #%%
 import numpy as np
@@ -111,10 +111,10 @@ def display_figure(rng_val, fun, ws, colormap, title_fig):
     ax.set_zlabel('E(u,v)')
     plt.show()
 
-input("\n--- Pulsar tecla para continuar ---\n")
+# input("\n--- Pulsar tecla para continuar ---\n")
 
 
-display_figure(1, E, ws, 'viridis', 'Ejercicio 1.2. Función sobre la que se calcula el descenso de gradiente')
+# display_figure(1, E, ws, 'viridis', 'Ejercicio 1.2. Función sobre la que se calcula el descenso de gradiente')
 
 #%%
 # =============================================================================
@@ -125,7 +125,6 @@ def f(x, y):
     return x**2 + 2 * (y**2) + 2 * np.sin(2 * np.pi * x) * np.sin(np.pi * y)
 
 def d_fx(x, y):
-    a = np.pi * y
     return 4 * np.pi * np.sin(np.pi * y) * np.cos(2 * np.pi * x) + 2 * x
 
 def d_fy(x, y):
@@ -225,11 +224,10 @@ def readData(file_x, file_y):
 # Funcion para calcular el error
 def Err(x,y,w):
     w_t = np.transpose(w)
-    product = np.array([np.dot(w_t, x_n) for x_n in x])
-    error = product - y
+    h_x = np.array([np.dot(w_t, x_n) for x_n in x])
+    error = h_x - y
     cuadratic_error = error * error
     ecm = np.mean(cuadratic_error)
-    #square_error = np.dot(product, product)
     
     return ecm
 
@@ -241,13 +239,45 @@ def grad_Err(x, y, w):
     
     return np.array([d_w0, d_w1, d_w2])
 
-
-
-
 # Gradiente Descendente Estocastico
-def sgd(?):
-    #
-    return w
+def sgd(x, y, w_ini, lr, grad_fun, fun, epsilon = None, epochs = 50, batch_size = 32):
+    w = w_min = w_ini
+    ws = np.array(w)
+    continuar = True
+    iterations = 0
+    while( continuar and iterations < epochs ):
+        print("Epoch: ", iterations)
+        # Obtenemos una permutación aleatoria de 0 a N donde N es el número de 
+        # datos, de manera que usaremos la misma permutación para x e y.
+        # De esta forma mezclamos los dos vectores de la misma manera.
+        permutation = np.random.permutation(len(x))
+        # Mezclamos los datos
+        x_batches = x[permutation]
+        y_batches = y[permutation]
+        # Dividimos los datos en batches mediante un reshape del vector
+        # x_batches = np.reshape( x_batches,
+        #                        (int(len(x_batches) / batch_size), batch_size, 3))        
+        # y_batches = np.reshape( y_batches,
+        #                        (int(len(y_batches) / batch_size), batch_size))
+        
+        for i in range(0, len(x_batches), batch_size):
+             
+            w = w - lr * grad_fun(x_batches[i : i + batch_size], y_batches[i : i + batch_size], w)
+            ws = np.append(ws, w, axis=0)
+            #print("Error: ", fun(x, y, w))
+            
+            # if(fun(x, y, w_min) > fun(x, y, w)):
+                #w_min = w
+            
+            if epsilon != None:
+                continuar = fun(x, y, w) > epsilon
+             
+
+        iterations += 1  
+        
+    #ws = np.reshape(ws, (int(len(ws)/2), 3))
+    #w = w_min
+    return w, iterations, ws  
 
 # # Pseudoinversa	
 # def pseudoinverse(?):
@@ -260,13 +290,39 @@ x, y = readData('datos/X_train.npy', 'datos/y_train.npy')
 # Lectura de los datos para el test
 x_test, y_test = readData('datos/X_test.npy', 'datos/y_test.npy')
 
-w = np.array([1., 1., 1.])
+
+
+w = np.array([0., 0., 0.])
 
 print ("grad: ", grad_Err(x,y,w))
-#w = sgd(?)
+w, _, _ = sgd(x, y,
+              w_ini = w,
+              lr = 0.001,
+              grad_fun = grad_Err,
+              fun = Err,
+              epsilon = 1e-8,
+              epochs = 200,
+              batch_size = 32)
 print ('Bondad del resultado para grad. descendente estocastico:\n')
 print ("Ein: ", Err(x,y,w))
 print ("Eout: ", Err(x_test, y_test, w))
+
+#%%
+data_1 = np.array([x_i for x_i, y_i in zip(x, y) if y_i == -1])
+data_5 = np.array([x_i for x_i, y_i in zip(x, y) if y_i == 1])
+plane = lambda x_1, x_2 : w[0] + w[1] * x_1 + w[2] * x_2
+x_1 = np.linspace(0.0, 0.6, num=100)
+x_2 = np.linspace(0, -9, num=100)
+
+y_1 = plane(x_1, x_2)
+
+plt.scatter(data_1[:, 1], data_1[:, 2], c='blue')
+plt.scatter(data_5[:, 1], data_5[:, 2], c='red')
+plt.plot(x_1, y_1)
+plt.xlabel("Intensidad media")
+plt.ylabel("Simetria")
+plt.xticks()
+plt.show()
 #%%
 input("\n--- Pulsar tecla para continuar ---\n")
 
