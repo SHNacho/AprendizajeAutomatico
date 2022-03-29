@@ -23,20 +23,20 @@ def gradient_descent(w_ini, lr, grad_fun, fun, epsilon = None, max_iters = 50):
     # gradiente descendente
     # 
     w = w_min = w_ini
-    ws = np.array(w)
+    ws = np.array([w])
     iterations = 0
     continuar = True
     while(continuar and iterations < max_iters):
         w = w - lr * grad_fun(w[0], w[1])
         iterations += 1
-        ws = np.append(ws, w, axis=0)
+        ws = np.append(ws, [w], axis=0)
         if(fun(w_min[0], w_min[1]) > fun(w[0], w[1])):
             w_min = w
         if epsilon != None:
             continuar = fun(w[0], w[1]) > epsilon
     
-    ws = np.reshape(ws, (int(len(ws)/2), 2))
     w = w_min
+    
     return w, iterations, ws   
 
 # =============================================================================
@@ -322,14 +322,8 @@ print(w)
 #%%
 data_1 = np.array([x_i for x_i, y_i in zip(x, y) if y_i == -1])
 data_5 = np.array([x_i for x_i, y_i in zip(x, y) if y_i == 1])
-plane = lambda x_1, x_2 : w[0] + w[1] * x_1 + w[2] * x_2
-x_1 = np.linspace(0.0, 1.0, num=100)
-x_2 = np.linspace(1.0, -9.0, num=100)
 
 a = [-w[0]/w[1], -w[2]/w[1]]
-
-y_1 = plane(x_1, x_2)
-print(len(y_1))
 
 plt.scatter(data_1[:, 1], data_1[:, 2], c='blue')
 plt.scatter(data_5[:, 1], data_5[:, 2], c='red')
