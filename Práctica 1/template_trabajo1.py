@@ -6,8 +6,6 @@ Nombre Estudiante: Ignacio Sánchez Herrera
 #%%
 import numpy as np
 import matplotlib.pyplot as plt
-#from sympy import diff, exp
-#from sympy.abc import u,v
 
 np.random.seed(1)
 
@@ -144,6 +142,14 @@ print("Punto inicial: ", initial_point)
 print("Mínimo alcanzado: ", f(w[0], w[1]))
 print("Alcanzado en el punto: (", w[0], ', ', w[1],')')
 
+x_plot = np.arange(0, 51)
+y_plot = np.array([f(v[0], v[1]) for v in ws])
+print(y_plot.shape)
+
+plt.plot(x_plot, y_plot)
+plt.title("Valor de la función $f$ en cada iteración. \n Learning rate 0.01")
+plt.show()
+
 lr = 0.1
 w, it, ws = gradient_descent(initial_point, lr, grad_f, f, max_iters=maxIter)
 display_figure(3, f, ws, 'viridis', 'Ejercicio 1.3.a. Descenso del gradiente con lr=0.1')
@@ -152,6 +158,15 @@ print("Punto inicial: ", initial_point)
 print("Mínimo alcanzado: ", f(w[0], w[1]))
 print("Alcanzado en el punto: (", w[0], ', ', w[1],')')
 print(f(-2, 2))
+
+# Eje x de 0 a 51. 
+# Tenemos 51 valores en ws: las 50 iteraciones más el valor inicial
+x_plot = np.arange(0, 51) 
+y_plot = np.array([f(v[0], v[1]) for v in ws])
+
+plt.plot(x_plot, y_plot)
+plt.title("Valor de la función $f$ en cada iteración. \n Learning rate 0.1")
+plt.show()
 
 #%%
 ## Apartado b)
