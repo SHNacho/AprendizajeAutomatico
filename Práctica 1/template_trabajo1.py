@@ -303,11 +303,10 @@ x_test, y_test = readData('datos/X_test.npy', 'datos/y_test.npy')
 
 
 
-w = np.array([1., 1., 1.])
+w = np.array([0., 0., 0.])
 print ("Ein: ", Err(x,y,w))
 print ("Eout: ", Err(x_test, y_test, w))
 
-print ("grad: ", grad_Err(x,y,w))
 w, _, _ = sgd(x, y,
               w_ini = w,
               lr = 0.01,
@@ -320,17 +319,17 @@ print ('Bondad del resultado para grad. descendente estocastico:\n')
 print ("Ein: ", Err(x,y,w))
 print ("Eout: ", Err(x_test, y_test, w))
 
-print(w)
-
 #%%
 data_1 = np.array([x_i for x_i, y_i in zip(x, y) if y_i == -1])
 data_5 = np.array([x_i for x_i, y_i in zip(x, y) if y_i == 1])
 
-hiperplano = [-w[0]/w[1], -w[2]/w[1]]
+hiperplano = lambda x: -(w[2]*x / w[1]) - (w[0]/w[2])
+
+h = [hiperplano(0.), hiperplano(1.)]
 
 plt.scatter(data_1[:, 1], data_1[:, 2], c='blue')
 plt.scatter(data_5[:, 1], data_5[:, 2], c='red')
-plt.plot(hiperplano)
+plt.plot(h)
 plt.xlabel("Intensidad media")
 plt.ylabel("Simetria")
 plt.show()
