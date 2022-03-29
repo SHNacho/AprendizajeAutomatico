@@ -157,7 +157,8 @@ display_figure(3, f, ws, 'viridis', 'Ejercicio 1.3.a. Descenso del gradiente con
 print("Punto inicial: ", initial_point)
 print("Mínimo alcanzado: ", f(w[0], w[1]))
 print("Alcanzado en el punto: (", w[0], ', ', w[1],')')
-print(f(-2, 2))
+# print("Tras las 50 iteraciones valor:", f(ws[-1, 0], ws[-1, 1]))
+# print("Tras las 50 iteraciones punto:", ws[-1, 0], ws[-1, 1])
 
 # Eje x de 0 a 51. 
 # Tenemos 51 valores en ws: las 50 iteraciones más el valor inicial
