@@ -151,6 +151,7 @@ display_figure(3, f, ws, 'viridis', 'Ejercicio 1.3.a. Descenso del gradiente con
 print("Punto inicial: ", initial_point)
 print("Mínimo alcanzado: ", f(w[0], w[1]))
 print("Alcanzado en el punto: (", w[0], ', ', w[1],')')
+print(f(-2, 2))
 
 #%%
 ## Apartado b)
@@ -182,7 +183,6 @@ for lr in lrs:
         print("Punto inicial: ", ini_p)
         print("Mínimo alcanzado: ", f(w[0], w[1]))
         print("Alcanzado en el punto: (", w[0], ', ', w[1],')')
-
 #%%
 
 
@@ -254,11 +254,6 @@ def sgd(x, y, w_ini, lr, grad_fun, fun, epsilon = None, epochs = 50, batch_size 
         # Mezclamos los datos
         x_batches = x[permutation]
         y_batches = y[permutation]
-        # Dividimos los datos en batches mediante un reshape del vector
-        # x_batches = np.reshape( x_batches,
-        #                        (int(len(x_batches) / batch_size), batch_size, 3))        
-        # y_batches = np.reshape( y_batches,
-        #                        (int(len(y_batches) / batch_size), batch_size))
         
         for i in range(0, len(x_batches), batch_size):
              
@@ -266,8 +261,8 @@ def sgd(x, y, w_ini, lr, grad_fun, fun, epsilon = None, epochs = 50, batch_size 
             ws = np.append(ws, w, axis=0)
             #print("Error: ", fun(x, y, w))
             
-            # if(fun(x, y, w_min) > fun(x, y, w)):
-                #w_min = w
+            if(fun(x, y, w_min) > fun(x, y, w)):
+                w_min = w
             
             if epsilon != None:
                 continuar = fun(x, y, w) > epsilon
@@ -276,7 +271,7 @@ def sgd(x, y, w_ini, lr, grad_fun, fun, epsilon = None, epochs = 50, batch_size 
         iterations += 1  
         
     #ws = np.reshape(ws, (int(len(ws)/2), 3))
-    #w = w_min
+    w = w_min
     return w, iterations, ws  
 
 # # Pseudoinversa	
@@ -297,7 +292,7 @@ w = np.array([0., 0., 0.])
 print ("grad: ", grad_Err(x,y,w))
 w, _, _ = sgd(x, y,
               w_ini = w,
-              lr = 0.001,
+              lr = 0.01,
               grad_fun = grad_Err,
               fun = Err,
               epsilon = 1e-8,
@@ -307,21 +302,25 @@ print ('Bondad del resultado para grad. descendente estocastico:\n')
 print ("Ein: ", Err(x,y,w))
 print ("Eout: ", Err(x_test, y_test, w))
 
+print(w)
+
 #%%
 data_1 = np.array([x_i for x_i, y_i in zip(x, y) if y_i == -1])
 data_5 = np.array([x_i for x_i, y_i in zip(x, y) if y_i == 1])
 plane = lambda x_1, x_2 : w[0] + w[1] * x_1 + w[2] * x_2
-x_1 = np.linspace(0.0, 0.6, num=100)
-x_2 = np.linspace(0, -9, num=100)
+x_1 = np.linspace(0.0, 1.0, num=100)
+x_2 = np.linspace(1.0, -9.0, num=100)
+
+a = [-w[0]/w[1], -w[2]/w[1]]
 
 y_1 = plane(x_1, x_2)
+print(len(y_1))
 
 plt.scatter(data_1[:, 1], data_1[:, 2], c='blue')
 plt.scatter(data_5[:, 1], data_5[:, 2], c='red')
-plt.plot(x_1, y_1)
+plt.plot(a)
 plt.xlabel("Intensidad media")
 plt.ylabel("Simetria")
-plt.xticks()
 plt.show()
 #%%
 input("\n--- Pulsar tecla para continuar ---\n")
