@@ -60,6 +60,7 @@ def gradient_descent(w_ini, lr, grad_fun, fun, epsilon = None, max_iters = 50):
 # =============================================================================
 # Ejercicio 1.2
 # =============================================================================
+print('Ejercicio 2\n')
 def E(u,v):
     return (u*v*np.exp(-(u**2) -(v**2)))**2  
 
@@ -131,7 +132,7 @@ def display_figure(rng_val, fun, ws, colormap, title_fig):
     ax.set_zlabel('E(u,v)')
     plt.show()
 
-# input("\n--- Pulsar tecla para continuar ---\n")
+input("\n--- Pulsar tecla para continuar ---\n")
 
 
 # display_figure(1, E, ws, 'viridis', 'Ejercicio 1.2. Función sobre la que se calcula el descenso de gradiente')
@@ -140,6 +141,7 @@ def display_figure(rng_val, fun, ws, colormap, title_fig):
 # =============================================================================
 # Ejercicio 1.3
 # =============================================================================
+print('Ejercicio 3\n')
 
 def f(x, y):
     return x**2 + 2 * (y**2) + 2 * np.sin(2 * np.pi * x) * np.sin(np.pi * y)
@@ -154,7 +156,9 @@ def grad_f(x, y):
     return np.array([d_fx(x,y), d_fy(x,y)])
   
 ## Apartado a)  
-### Con learning rate 0.01        
+print('Apartado a)\n')
+### Con learning rate 0.01   
+print('Learning rate = 0.01')     
 lr = 0.01
 maxIter = 50    # Número máximo de iteraciones
 initial_point = np.array([-1.0,1.0]) # Punto inicial
@@ -176,6 +180,7 @@ plt.title("Valor de la función $f$ en cada iteración. \n Learning rate 0.01")
 plt.show()
 
 ### Con learning rate 0.1
+print('Learning rate = 0.1')
 lr = 0.1
 w, it, ws = gradient_descent(initial_point, lr, grad_f, f, max_iters=maxIter)
 # display_figure(3, f, ws, 'viridis', 'Ejercicio 1.3.a. Descenso del gradiente con lr=0.1')
@@ -194,8 +199,11 @@ plt.plot(x_plot, y_plot)
 plt.title("Valor de la función $f$ en cada iteración. \n Learning rate 0.1")
 plt.show()
 
+input("\n--- Pulsar tecla para continuar ---\n")
+
 #%%
 ## Apartado b)
+print('Apartado b)')
 
 # Definimos los puntos iniciales
 initial_points = np.array([[-0.5, -0.5],
@@ -224,12 +232,9 @@ for lr in lrs:
         print("Punto inicial: ", ini_p)
         print("Mínimo alcanzado: ", f(w[0], w[1]))
         print("Alcanzado en el punto: (", w[0], ', ', w[1],')')
+        
+input("\n--- Pulsar tecla para continuar ---\n")
 #%%
-
-
-
-
-
 
 ###############################################################################
 ###############################################################################
@@ -272,21 +277,42 @@ def Err(x,y,w):
     
     return ecm
 
+# Gradiente del error
 def grad_Err(x, y, w):
+    # Traspuesta de w
     w_t = np.transpose(w)
+    # Vemos el número de características que tiene el vector
     n_caracteristicas = x.shape[1]
+    # Calculamos tantas derivadas parciales como características haya
     d_w = [np.mean((np.array([np.dot(w_t, x_n) for x_n in x]) - y) * x[:, i]) * 2 for i in range(n_caracteristicas)]
     
     return np.array(d_w)
 
-# Gradiente Descendente Estocastico
+'''
+Gradiente descendendiente estocástico
+
+Calcula el descenso del gradiente estocástico. Se le pasan como parámetros:
+    x: características de los datos
+    y: etiquetas de los datos
+    grad_fun: gradiente de la función (de error normalmente)
+    fun: función a minimizar (función de error normalmente)
+    epsilon: error mínimo al que parará la búsqueda
+    epochs: número de veces que se recorren todos los datos
+    batch_size: tamaño del minibatch que actualiza el valor de w
+
+La búsqueda comienza con w = [0, 0, ..., 0]
+
+Devuelve:
+    w: Último punto obtenido
+    ws: Conjunto de puntos por los que pasa en la búsqueda tras cada época
+'''
 def sgd(x, y, lr, grad_fun, fun, epsilon = None, epochs = 50, batch_size = 32):
-    tam_v = x.shape[1]
-    w = w_min = np.zeros(tam_v)
-    ws = np.array(w)
+    tam_v = x.shape[1] # Tamaño del vector de características
+    w = np.zeros(tam_v) # w se inicializa a 0
+    ws = np.empty((epochs, len(w)))
     continuar = True
-    iterations = 0
-    while( continuar and iterations < epochs ):
+    epoch = 0
+    while( continuar and epoch < epochs ):
         # print("Epoch: ", iterations)
         # Obtenemos una permutación aleatoria de 0 a N donde N es el número de 
         # datos, de manera que usaremos la misma permutación para x e y.
@@ -297,34 +323,36 @@ def sgd(x, y, lr, grad_fun, fun, epsilon = None, epochs = 50, batch_size = 32):
         y_batches = y[permutation]
         
         for i in range(0, len(x_batches), batch_size):
-             
+            # Calculamos el siguiente valor
             w = w - lr * grad_fun(x_batches[i : i + batch_size], y_batches[i : i + batch_size], w)
-            ws = np.append(ws, w, axis=0)
-            #print("Error: ", fun(x, y, w))
             
-            if(fun(x, y, w_min) > fun(x, y, w)):
-                w_min = w
-            
+            # Comprobamos si se alcanza el error deseado
             if epsilon != None:
                 continuar = fun(x, y, w) > epsilon
-             
-
-        iterations += 1  
         
-    ws = np.reshape(ws, (int(len(ws)/tam_v), tam_v))
-    w = w_min
-    return w, iterations, ws  
+        # Añadimos el punto al vector de características
+        ws[epoch] = w
+             
+        epoch += 1  
 
-# Pseudoinversa	
+    return w, ws  
+
+'''
+Método de la pseudoinversa
+'''
 def pseudoinverse(X, y):
-    #
+    # Obtenemos la descomposición en valores singulares X = UDV^t
     U, D, V_t = np.linalg.svd(X, full_matrices = False)
+    # Diagonalizamos la matríz D porque nos la da en forma de vector
     D = np.diag(D)
+    # Transponemos V^t para obtener V
     V = np.transpose(V_t)
     
+    # Calculamos la pseudoinversa como VD^(-1)U^t
     pseudoinverse = np.dot(V, np.linalg.inv(D))
     pseudoinverse = np.dot(pseudoinverse, np.transpose(U))
     
+    # Calculamos w como X^(dag)*y
     w = np.dot(pseudoinverse, y)
     return w
 
@@ -334,22 +362,34 @@ x, y = readData('datos/X_train.npy', 'datos/y_train.npy')
 # Lectura de los datos para el test
 x_test, y_test = readData('datos/X_test.npy', 'datos/y_test.npy')
 
+
 #%%
 
-w, _, _ = sgd(x, y,
+epochs = 20
+batch_size = 64
+
+w_sgd, ws = sgd(x, y,
               lr = 0.01,
               grad_fun = grad_Err,
               fun = Err,
               epsilon = 1e-8,
-              epochs = 200,
-              batch_size = 32)
+              epochs = epochs,
+              batch_size = batch_size)
 print ('Bondad del resultado para grad. descendente estocastico:\n')
 print ("Ein: ", Err(x,y,w))
 print ("Eout: ", Err(x_test, y_test, w))
 
+x_plot = np.arange(0, epochs) 
+y_plot = np.array([Err(x, y, v) for v in ws])
+
+# Pintamos la evolución del valor de la función
+plt.plot(x_plot, y_plot)
+plt.title("Evolución del error. \n")
+plt.show()
+
 #%%
 
-w = pseudoinverse(x, y)
+w_pseudo = pseudoinverse(x, y)
 
 print ('Bondad del resultado para grad. descendente estocastico:\n')
 print ("Ein: ", Err(x,y,w))
@@ -359,21 +399,24 @@ print(w)
 data_1 = np.array([x_i for x_i, y_i in zip(x, y) if y_i == -1])
 data_5 = np.array([x_i for x_i, y_i in zip(x, y) if y_i == 1])
 
-hiperplano = lambda x: -(w[1]*x / w[2]) - (w[0]/w[2])
+def hiperplano(x, w):
+    return -(w[1]*x / w[2]) - (w[0]/w[2])
 
-h = [hiperplano(0.), hiperplano(1.)]
+h_sgd = [hiperplano(0., w_sgd), hiperplano(1., w_sgd)]
+h_pseudo = [hiperplano(0., w_pseudo), hiperplano(1., w_pseudo)]
 
-plt.scatter(data_1[:, 1], data_1[:, 2], c='blue')
-plt.scatter(data_5[:, 1], data_5[:, 2], c='red')
-plt.plot(h)
+plt.scatter(data_1[:, 1], data_1[:, 2], c='blue', label='1')
+plt.scatter(data_5[:, 1], data_5[:, 2], c='red', label='5')
+plt.plot(h_sgd, label = 'SGD')
+plt.plot(h_pseudo, label = 'Pseudoinversa')
 plt.xlabel("Intensidad media")
 plt.ylabel("Simetria")
+plt.legend()
 plt.show()
 
-#%%
-#input("\n--- Pulsar tecla para continuar ---\n")
+input("\n--- Pulsar tecla para continuar ---\n")
 
-#Seguir haciendo el ejercicio...
+#%%
 
 print('Ejercicio 2\n')
 # Simula datos en un cuadrado [-size,size]x[-size,size]
@@ -396,6 +439,7 @@ size = 1
 d = 2
 x = simula_unif(N, d, size)
 
+# Pintamos el mapa de puntos obtenido
 plt.scatter(x[:, 0], x[:, 1])
 plt.title("Mapa de puntos 2D genereados aleatoriamente en un cuadrado de 1x1")
 plt.show()
@@ -422,14 +466,16 @@ plt.scatter(clase_2[:, 1], clase_2[:, 2], c='yellow')
 plt.show()
 
 # Ajustamos un modelo de regresión lineal a los datos mediante la pseudoinversa
+epochs = 20
+batch_size = 64
 print("Calculando SGD ...")
-w,_,_ = sgd(x, y,
-            lr=0.01,
-            grad_fun=grad_Err,
-            fun=Err,
-            epsilon=10e-8,
-            epochs=200,
-            batch_size=64)
+w,_ = sgd(x, y,
+          lr=0.01,
+          grad_fun=grad_Err,
+          fun=Err,
+          epsilon=10e-8,
+          epochs=epochs,
+          batch_size=batch_size)
 
 # Mostramos el error dentro de la muestra obtenido
 print ('Bondad del resultado para grad. descendente estocastico:\n')
@@ -442,7 +488,7 @@ def experimento():
     N = 1000
     size = 1
     d = 2
-    n = 100
+    n = 1000
     Ein = np.empty((n))
     Eout = np.empty((n))
     for i in range(n):
@@ -466,13 +512,15 @@ def experimento():
         x = np.insert(x, 0, 1, axis=1)
         x_test = np.insert(x_test, 0, 1, axis=1)
 
-        w,_,_ = sgd(x, y,
+        w,_ = sgd(x, y,
                     lr=0.01,
                     grad_fun=grad_Err,
                     fun=Err,
                     epsilon=10e-8,
-                    epochs=60,
-                    batch_size=128)
+                    epochs=20,
+                    batch_size=256)
+        
+        # w = pseudoinverse(x, y)
         
         Ein[i] = Err(x, y, w)
         Eout[i] = Err(x_test, y_test, w)
@@ -487,7 +535,6 @@ N = 1000
 size = 1
 d = 2
 x = simula_unif(N, d, size)
-
 # Obtenemos la etiqueta de cada elemento con la función f
 y = np.array([f(x_i[0], x_i[1]) for x_i in x])
 
@@ -504,14 +551,26 @@ x = np.insert(x, 0, 1, axis=1)
 aux = np.array([[x_i[1] * x_i[2], x_i[1]**2, x_i[2]**2] for x_i in x])
 x = np.array([np.concatenate((x_i, aux_i)) for x_i, aux_i in zip (x, aux)])
 
+epochs = 200
+batch_size = 64
+
 print("Calculando SGD ...")
-w,_,_ = sgd(x, y,
-            lr=0.01,
-            grad_fun=grad_Err,
-            fun=Err,
-            epsilon=10e-8,
-            epochs=200,
-            batch_size=64) 
+w, ws = sgd(x, y,
+          lr=0.01,
+          grad_fun=grad_Err,
+          fun=Err,
+          epochs=epochs,
+          batch_size=batch_size) 
+
+# w = pseudoinverse(x, y)
 
 print ('Bondad del resultado para grad. descendente estocastico:\n')
 print ("Ein: ", Err(x,y,w))
+
+x_plot = np.arange(0, epochs) 
+y_plot = np.array([Err(x, y, v) for v in ws])
+
+# Pintamos la evolución del valor de la función
+plt.plot(x_plot, y_plot)
+plt.title("Evolución del error. \n")
+plt.show()
